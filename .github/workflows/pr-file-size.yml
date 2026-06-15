@@ -1,0 +1,64 @@
+name: PR file size check
+
+# Mandatory check: no pull request may add or change a file larger than 10 MiB.
+# This keeps large assets (images, video, binaries) out of blog post commits.
+#
+# Triggers on every pull request — not path-filtered — so the status is always
+# reported. That lets it be marked as a required check in branch protection
+# without leaving PRs stuck "pending" when they don't touch blog files.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  file-size:
+    name: Enforce 10 MiB limit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail on files larger than 10 MiB
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          MAX_BYTES=$((10 * 1024 * 1024))   # 10 MiB
+
+          # Added (A), copied (C), modified (M) or renamed (R) files in this PR.
+          # Deletions are excluded — a removed file has no size to enforce.
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_SHA"...HEAD)
+
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No added or changed files to check."
+            exit 0
+          fi
+
+          oversized=0
+          for f in "${files[@]}"; do
+            # Skip anything not present in the working tree (e.g. rename source).
+            [ -f "$f" ] || continue
+            size=$(stat -c%s "$f")
+            if [ "$size" -gt "$MAX_BYTES" ]; then
+              printf '::error file=%s::%s is %d bytes (%.2f MiB), exceeds the 10 MiB limit\n' \
+                "$f" "$f" "$size" "$(awk "BEGIN { print $size / 1048576 }")"
+              oversized=1
+            else
+              printf 'OK  %s (%d bytes)\n' "$f" "$size"
+            fi
+          done
+
+          if [ "$oversized" -ne 0 ]; then
+            echo ""
+            echo "One or more files exceed the 10 MiB limit. Please remove or shrink them."
+            exit 1
+          fi
+
+          echo ""
+          echo "All added/changed files are within the 10 MiB limit."
