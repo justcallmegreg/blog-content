@@ -1,0 +1,103 @@
+name: PR single blog post check
+
+# Mandatory check: a pull request may add at most ONE blog post markdown file.
+#
+# A "blog post" is a file matching the documented layout:
+#     blogs/<YYYY>/<MM>/<DD>/<slug>.md
+# Assets live one level deeper (e.g. blogs/<YYYY>/<MM>/<DD>/assets/img.svg) so
+# they are NOT matched here — a PR may add as many assets as it likes. Only
+# files that are *added* count; editing, renaming or moving an existing post is
+# fine. Changes to non-blog-post files are entirely out of scope.
+#
+# Triggers on every pull request — not path-filtered — so the status is always
+# reported and the check can be marked as required in branch protection.
+#
+# On failure a comment is posted on the PR listing the added posts. The comment
+# is sticky: re-runs update the same comment via a hidden marker.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  single-blogpost:
+    name: One blog post per PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail when more than one blog post is added
+        id: post_check
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          # Newly ADDED files (diff-filter=A) whose path is a blog post:
+          # blogs/<YYYY>/<MM>/<DD>/<slug>.md — i.e. a .md directly inside a
+          # date folder, which excludes anything under an assets/ subfolder.
+          mapfile -t posts < <(
+            git diff --name-only --diff-filter=A "$BASE_SHA"...HEAD \
+              | grep -E '^blogs/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+\.md$' || true
+          )
+
+          count=${#posts[@]}
+          echo "Added blog post files: ${count}"
+          : > posts.md
+          for p in "${posts[@]}"; do
+            echo "  - ${p}"
+            echo "- \`${p}\`" >> posts.md
+          done
+
+          if [ "$count" -le 1 ]; then
+            echo "OK: a PR may add at most one blog post."
+            exit 0
+          fi
+
+          echo "too_many=true" >> "$GITHUB_OUTPUT"
+          echo "::error::This PR adds ${count} blog posts; only one is allowed per PR."
+          exit 1
+
+      - name: Comment on PR with the failure details
+        if: failure() && steps.post_check.outputs.too_many == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MARKER: "<!-- one-blogpost-check -->"
+        run: |
+          set -euo pipefail
+
+          {
+            echo "$MARKER"
+            echo "## ❌ Too many blog posts in one PR"
+            echo ""
+            echo "A pull request may add **at most one** blog post. This PR adds the following posts:"
+            echo ""
+            cat posts.md
+            echo ""
+            echo "Please split these into separate pull requests — one blog post each. (Assets and edits to existing posts don't count toward this limit.)"
+          } > comment.md
+
+          # -R reads raw lines, -s slurps the whole file into one string (.)
+          payload=$(jq -Rs '{body: .}' comment.md)
+
+          # Reuse an existing comment from a previous run if present (sticky).
+          existing=$(gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq "map(select(.body | contains(\"${MARKER}\"))) | .[0].id // empty")
+
+          if [ -n "$existing" ]; then
+            echo "Updating existing comment ${existing}"
+            echo "$payload" | gh api -X PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" --input -
+          else
+            echo "Creating new comment"
+            echo "$payload" | gh api -X POST \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --input -
+          fi
