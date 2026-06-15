@@ -6,12 +6,17 @@ name: PR file size check
 # Triggers on every pull request — not path-filtered — so the status is always
 # reported. That lets it be marked as a required check in branch protection
 # without leaving PRs stuck "pending" when they don't touch blog files.
+#
+# When the check fails, a comment is posted on the PR listing the offending
+# files. The comment is "sticky": re-runs update the same comment instead of
+# adding a new one each time.
 
 on:
   pull_request:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   file-size:
@@ -24,6 +29,7 @@ jobs:
           fetch-depth: 0
 
       - name: Fail on files larger than 10 MiB
+        id: size_check
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
@@ -41,13 +47,16 @@ jobs:
           fi
 
           oversized=0
+          : > oversized.md   # markdown list of offending files, for the PR comment
           for f in "${files[@]}"; do
             # Skip anything not present in the working tree (e.g. rename source).
             [ -f "$f" ] || continue
             size=$(stat -c%s "$f")
             if [ "$size" -gt "$MAX_BYTES" ]; then
-              printf '::error file=%s::%s is %d bytes (%.2f MiB), exceeds the 10 MiB limit\n' \
-                "$f" "$f" "$size" "$(awk "BEGIN { print $size / 1048576 }")"
+              mib=$(awk "BEGIN { printf \"%.2f\", $size / 1048576 }")
+              printf '::error file=%s::%s is %d bytes (%s MiB), exceeds the 10 MiB limit\n' \
+                "$f" "$f" "$size" "$mib"
+              echo "- \`$f\` — $mib MiB ($size bytes)" >> oversized.md
               oversized=1
             else
               printf 'OK  %s (%d bytes)\n' "$f" "$size"
@@ -55,6 +64,7 @@ jobs:
           done
 
           if [ "$oversized" -ne 0 ]; then
+            echo "oversized=true" >> "$GITHUB_OUTPUT"
             echo ""
             echo "One or more files exceed the 10 MiB limit. Please remove or shrink them."
             exit 1
@@ -62,3 +72,41 @@ jobs:
 
           echo ""
           echo "All added/changed files are within the 10 MiB limit."
+
+      - name: Comment on PR with the failure details
+        if: failure() && steps.size_check.outputs.oversized == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MARKER: "<!-- file-size-check -->"
+        run: |
+          set -euo pipefail
+
+          {
+            echo "$MARKER"
+            echo "## ❌ File size check failed"
+            echo ""
+            echo "The following file(s) exceed the **10 MiB** per-file limit and must be removed or shrunk before this PR can be merged:"
+            echo ""
+            cat oversized.md
+            echo ""
+            echo "Large assets (images, video, binaries) shouldn't be committed alongside blog posts — compress the asset or host it externally, then update the PR."
+          } > comment.md
+
+          # -R reads raw lines, -s slurps the whole file into one string (.)
+          payload=$(jq -Rs '{body: .}' comment.md)
+
+          # Reuse an existing comment from a previous run if present (sticky).
+          existing=$(gh api --paginate \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq "map(select(.body | contains(\"${MARKER}\"))) | .[0].id // empty")
+
+          if [ -n "$existing" ]; then
+            echo "Updating existing comment ${existing}"
+            echo "$payload" | gh api -X PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${existing}" --input -
+          else
+            echo "Creating new comment"
+            echo "$payload" | gh api -X POST \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" --input -
+          fi
