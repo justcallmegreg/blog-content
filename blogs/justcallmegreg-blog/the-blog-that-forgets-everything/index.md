@@ -2,15 +2,12 @@
 title: "The Blog That Forgets Everything"
 subtitle: "A stateless, container-based blog engine that keeps no database, publishes posts through a git pull request, and renders Markdown live."
 date: "2026-07-04"
-reading_time: "9 min"
 audience: "Developers who run their own blog"
 tags: [astro, stateless-architecture, git, ci-cd, self-hosting, blog-engine]
 repository: https://github.com/justcallmegreg/blog
 ---
 
 *A stateless, container-based blog engine that keeps no database, publishes posts through a git pull request, and renders Markdown live.*
-
-*9 min read · For developers who run their own blog*
 
 The blog you are reading runs on an engine dressed up as a [Fallout](https://fallout.bethesda.net/) computer terminal — the green-on-black RobCo Pip-Boy look, a boot-up typewriter title, an occasional CRT screen-roll, and a Vault Boy waving in the corner. The theme is a joke about old, forgetful machines. It turns out the joke also describes the architecture: the engine remembers almost nothing. Restart it and it forgets every post — then rebuilds its entire world from a git repository in a few seconds. This post is about why a blog would be built that way, and how the pieces fit.
 
