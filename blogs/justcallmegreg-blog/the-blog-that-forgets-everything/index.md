@@ -8,8 +8,6 @@ tags: [astro, stateless-architecture, git, ci-cd, self-hosting, blog-engine]
 repository: https://github.com/justcallmegreg/blog
 ---
 
-# The Blog That Forgets Everything
-
 *A stateless, container-based blog engine that keeps no database, publishes posts through a git pull request, and renders Markdown live.*
 
 *9 min read · For developers who run their own blog*
