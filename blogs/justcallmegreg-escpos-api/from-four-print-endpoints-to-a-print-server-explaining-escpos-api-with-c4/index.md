@@ -26,16 +26,53 @@ C4 is a way to describe software architecture at four levels of zoom: **Context,
 
 At the widest zoom, `escpos-api` is a single box: a self-hosted print server. Around it sit the people and systems it talks to.
 
+```mermaid
+C4Context
+    title System Context — escpos-api
+    Person(user, "User", "Prints from a phone, a CLI, or a script")
+    System(escpos, "escpos-api", "Self-hosted print server")
+    System_Ext(thermal, "Thermal printer", "ESC/POS device, TCP 9100")
+    System_Ext(office, "Office printer", "IPP / driverless")
+    System_Ext(claude, "Anthropic Claude API", "Optional AI proposals")
+    Rel(user, escpos, "Sends print jobs", "HTTP / JSON")
+    Rel(escpos, thermal, "Prints receipts", "ESC/POS over TCP")
+    Rel(escpos, office, "Prints a PDF", "IPP")
+    Rel(escpos, claude, "Requests suggestions", "HTTPS")
+```
+
 - **People** send print jobs three ways: a phone-friendly **web form** served at the root path, a companion **CLI** that opens your `$EDITOR` and posts the result, and any **HTTP client** — a `curl` in a deploy script posting a build result, for example.
 - **The thermal printer** is an external system: a network-connected ESC/POS device the server reaches over TCP (port `9100` by default).
 - **Office printers** are a second, separate target. A `/cups/print` endpoint renders Markdown to PDF and sends it to any IPP-capable printer ("IPP Everywhere" / driverless).
 - **The Anthropic Claude API** is an optional outside dependency, used only when AI proposals for tasks or recipes are enabled at runtime. No API key lives in the repo.
 
-That single paragraph is the context diagram in words: who uses it, and what it depends on.
+The diagram and the list say the same thing at two levels of detail: who uses it, and what it depends on.
 
 ### Level 2 — Container: the runnable pieces
 
 Zoom in and the one box becomes a few separately runnable parts. In C4 a "container" is a deployable or runnable unit, not necessarily a Docker container.
+
+```mermaid
+C4Container
+    title Containers — escpos-api
+    Person(user, "User", "Web form, CLI, or HTTP client")
+    System_Boundary(sys, "escpos-api") {
+        Container(app, "Flask HTTP app", "Python, Flask", "Serves the API and web UI")
+        Container(sched, "Scheduler", "Python daemon thread", "Fires due prints and digests")
+        ContainerDb(db, "Database", "SQLite / Postgres", "Users, schedules, recipes, menus")
+        Container(cli, "CLI", "Python package", "Opens $EDITOR, posts to the API")
+    }
+    System_Ext(thermal, "Thermal printer", "ESC/POS, TCP 9100")
+    System_Ext(office, "Office printer", "IPP")
+    System_Ext(claude, "Claude API", "Optional")
+    Rel(user, app, "Uses", "HTTP / JSON")
+    Rel(cli, app, "Posts tasks / events", "HTTP")
+    Rel(app, db, "Reads / writes", "SQLAlchemy")
+    Rel(sched, db, "Polls for due rows", "SQLAlchemy")
+    Rel(app, thermal, "Prints", "ESC/POS")
+    Rel(sched, thermal, "Prints", "ESC/POS")
+    Rel(app, office, "Prints a PDF", "IPP")
+    Rel(app, claude, "Proposes tasks / recipes", "HTTPS")
+```
 
 - **The Flask HTTP app** is the heart. `run.py` calls `create_app()`, which wires configuration, builds the printer, creates the database, registers routes, and starts the scheduler. It also serves the web UI (templates and static files) — no separate frontend.
 - **A relational database** holds users, schedules, routines, recipes, and menus. It defaults to a local SQLite file and can be pointed at Postgres through `DATABASE_URL`.
@@ -47,6 +84,32 @@ The app ships as a Docker image built for both `linux/amd64` and `linux/arm64`, 
 ### Level 3 — Component: inside the Flask app
 
 Zoom into the Flask container and you find the components — the modules that do the work.
+
+```mermaid
+C4Component
+    title Components — inside the Flask app
+    Container_Boundary(app, "Flask HTTP app") {
+        Component(routes, "Routes", "Flask", "HTTP endpoints and auth")
+        Component(printer, "Printer factory", "python-escpos", "Global and per-user printer")
+        Component(layout, "Layout printers", "Python", "task / event / calendar / expense / digest / recipe / menu")
+        Component(data, "Auth + models", "SQLAlchemy", "Login, users, persistence")
+        Component(sched, "Scheduling engines", "Python", "scheduler, recurrence, digests, routines")
+        Component(ipp, "IPP client", "RFC 8011", "Markdown to PDF to printer")
+        Component(claude, "Claude client", "Anthropic SDK", "Task and recipe proposals")
+    }
+    ContainerDb(db, "Database", "SQLite / Postgres", "")
+    System_Ext(thermal, "Thermal printer", "ESC/POS")
+    Rel(routes, printer, "Resolves a printer")
+    Rel(routes, layout, "Delegates formatting")
+    Rel(routes, data, "Reads / writes")
+    Rel(routes, claude, "Requests proposals")
+    Rel(routes, ipp, "Sends office jobs")
+    Rel(layout, printer, "Writes bytes to")
+    Rel(printer, thermal, "Sends", "ESC/POS")
+    Rel(data, db, "Persists", "SQLAlchemy")
+    Rel(sched, layout, "Prints on schedule")
+    Rel(sched, db, "Polls for due rows")
+```
 
 - **`routes.py`** is the HTTP layer: status checks, the print endpoints, account and avatar management, and the CUPS path.
 - **`printer.py`** is a factory. It builds the shared network printer from config, and — neatly — resolves a *per-user* printer when a logged-in user has their own host and port. Set `ESCPOS_DUMMY` and it returns an in-memory dummy so you can develop with no hardware.
@@ -74,7 +137,7 @@ C4 was chosen over the alternatives for a reason. A single architecture diagram 
 
 It also matches how `escpos-api` is actually built. The project already separates concerns the way the levels do — routes at the edge, layout components in the middle, protocol clients (Claude, IPP) at the boundary. Describing it with C4 did not require reshaping the code; the code was already close to the model. That is a useful signal in both directions: a clean structure is easy to draw, and drawing it exposes where the structure is not clean.
 
-The main trade-off is that the two lower levels drift. Components and code change with every feature, so a hand-maintained Level 3 or 4 diagram goes stale fast. The practical answer is to keep the top two levels — Context and Container — deliberate and stable, and let the lower two be described in prose (as above) or generated from the source rather than hand-drawn.
+The main trade-off is that the two lower levels drift. Components and code change with every feature, so a hand-maintained Level 3 or 4 diagram goes stale fast. The practical answer is to keep the top two levels — Context and Container — deliberate and stable, and treat the lower two as lightweight: a rough sketch like the component diagram above, or one generated from the source, rather than an artifact you promise to keep current by hand.
 
 ## Conclusions
 
