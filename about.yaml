@@ -1,74 +1,76 @@
 # About page content for the blog engine. Company names are intentionally
 # anonymized to role + scale; only the role, essence and impact are shown.
-headline: "Greg Nagy — cloud, Kubernetes & platform engineering leader"
+headline: "Greg Nagy — hands-on engineering leader: cloud, containerization & automation"
 
 bio: >-
-  Engineering is a method: define, research, design, build, measure, iterate.
-  For a decade I've led cloud adoption, Kubernetes and containerization — from
-  writing infrastructure-as-code before managed Kubernetes existed, to building
-  and leading a containerization practice serving enterprises across Europe. I
-  build platforms that make application delivery simple, and the teams that keep
-  them running. Based in the Netherlands, at home across every major hyperscaler.
+  Engineering is a method — define, research, design, build, measure, iterate —
+  and at the end it's applied science, not a memorized list of tools. Over a
+  decade I've worked across on-prem data centers and every major hyperscaler,
+  but what I trust is the approach: containerization and automation over one-off
+  fixes, methodologies over product names. I stay hands-on — I can design and
+  build the platform myself — while holding the wider picture: setting the goal,
+  shaping the execution plan, and owning its delivery. I build systems that make
+  software delivery simple, and I build and lead the teams that run them.
 
 projects:
   - start: 2025
     end: 2026
-    description: "Consultant — a leading technology consultancy. Advising enterprises on cloud, platform and DevOps transformation."
+    description: "Consultant — a leading technology consultancy. Helping enterprises transform how they build and run software, pairing hands-on engineering with the strategy, goals and execution planning that make a transformation actually land."
 
   - start: 2024
     end: 2026
-    description: "Founder — an independent IT consulting & services practice. Partnering with clients on transformation projects while growing a small workshop of technical expertise."
+    description: "Founder — an independent IT consulting & services practice. Taking client transformations end to end: defining the goal, designing the approach, and doing the hands-on build myself alongside a small workshop of trusted experts."
 
   - start: 2020
     end: 2023
-    description: "Practice Lead — a European cloud-native consultancy. Spearheaded the containerization business line, driving Kubernetes adoption for mid- to enterprise-scale companies across Europe."
-    responsibilities: "Owned the strategy, offering and delivery for containerization; built and led a team from the ground up to a dozen specialists delivering professional and managed services."
-    deliveries: "Standardized a repeatable containerization offering that positioned the firm as a market leader; delivered greenfield and brownfield projects across all major hyperscalers (EKS, AKS, GKE, OpenShift, Rancher), from presales through delivery management."
+    description: "Practice Lead — a European cloud-native consultancy. Built and ran the containerization practice from the ground up, turning a repeatable, automation-first method into the firm's market-leading offering."
+    responsibilities: "Owned the practice end to end — strategy, offering, hiring and delivery — while staying technical: I set the goals and the execution plan, then worked alongside the team on the hard problems. Grew it from zero to a dozen specialists delivering professional and managed services."
+    deliveries: "Standardized a repeatable containerization-and-automation method that worked across every major hyperscaler and self-managed platform; delivered greenfield and brownfield projects from presales through delivery management, consistently ahead of competitors."
 
   - start: 2018
     end: 2020
-    description: "Team Lead — the Netherlands practice of that European cloud-native consultancy. Built up the technical team on AWS and GCP."
-    responsibilities: "Managed hiring, mentoring and team development; supported presales with technical insight; oversaw projects from sale to delivery."
-    deliveries: "Helped double the size of the local branch, growing both team and delivery capability while training cloud architects and engineers."
+    description: "Team Lead — the Netherlands practice of that European cloud-native consultancy. Grew the technical team across AWS and GCP while staying hands-on in delivery."
+    responsibilities: "Managed hiring, mentoring and team development, backed presales with real technical depth, and oversaw projects from sale to delivery — defining scope and plan, then helping execute them."
+    deliveries: "Helped double the size of the local branch, growing both the team and its delivery capability, and trained cloud architects and engineers to a consistent, method-driven standard."
 
   - start: 2018
     end: 2018
-    description: "Cloud Architect — an enterprise industrial software company. Led the shift to a Kubernetes-based infrastructure."
-    responsibilities: "Worked hand-in-hand with product development teams to make their applications Kubernetes-ready."
-    deliveries: "Built a dependable Kubernetes landing zone that gave the company a solid foundation for straightforward application deployment."
+    description: "Cloud Architect — an enterprise industrial software company. Led the move to a container-based platform, hands-on with the product teams to make it real."
+    responsibilities: "Worked directly with product development to make their applications platform-ready, and defined the foundation the whole company would build on."
+    deliveries: "Designed and built a dependable landing zone that gave the company a simple, repeatable path from code to running software."
 
   - start: 2016
     end: 2018
-    description: "DevOps Engineer — one of the world's largest blog media companies. Moved the company's infrastructure from data centers to AWS, before managed Kubernetes existed."
-    responsibilities: "Designed the AWS landing zone with infrastructure-as-code; partnered with developers to make applications container-native."
-    deliveries: "Delivered the data-center-to-AWS migration and hand-rolled Kubernetes cluster provisioning on CoreOS — adopting containers ahead of the managed-service curve."
+    description: "DevOps Engineer — one of the world's largest blog media companies. Moved the company off its own data centers and onto the cloud, infrastructure-as-code first, before managed container platforms existed."
+    responsibilities: "Designed and built the cloud landing zone by hand with infrastructure-as-code, and partnered with developers to make their applications cloud- and container-native."
+    deliveries: "Delivered the data-center-to-cloud migration and hand-rolled container-cluster provisioning on CoreOS — proof that the method mattered more than any off-the-shelf service."
 
   - start: 2016
     end: 2016
-    description: "DevOps Engineer — a global interactive-systems provider. Built and ran AWS infrastructure for a worldwide fleet of interactive adviser devices."
-    responsibilities: "Designed a distributed, reliable AWS platform serving hundreds of endpoints internationally."
-    deliveries: "Reduced operational cost and cut the time to launch new products onto the platform, while sustaining reliability across global conditions."
+    description: "DevOps Engineer — a global interactive-systems provider. Built and ran the automated cloud infrastructure behind a worldwide fleet of interactive adviser devices."
+    responsibilities: "Designed a distributed, reliable, automation-driven platform serving hundreds of endpoints internationally."
+    deliveries: "Cut operational cost and shortened the time to launch new products, while keeping the fleet reliable across very different global conditions."
 
   - start: 2015
     end: 2016
     description: "Head of Software Development — an ed-tech robotics startup. Owned software delivery and infrastructure for a programmable robot that teaches children to code."
-    responsibilities: "Coordinated software, hardware and market-research teams to align product development with feedback and manufacturing timelines."
-    deliveries: "Built the product's software and infrastructure from the ground up in a fast-moving startup environment."
+    responsibilities: "Coordinated software, hardware and market-research teams — aligning the build with real feedback and manufacturing timelines — and stayed hands-on building the systems myself."
+    deliveries: "Stood up the product's entire software and infrastructure from nothing in a fast-moving startup."
 
   - start: 2015
     end: 2015
-    description: "Software Engineer — an open-source security software company. Developed a high-throughput open-source logging engine processing thousands of logs per second."
-    responsibilities: "Guided community contributions and safeguarded code quality on the main branch."
-    deliveries: "Improved the engine's speed and reliability and integrated community-developed features and fixes."
+    description: "Software Engineer — an open-source security software company. Developed a high-throughput open-source logging engine handling thousands of events per second."
+    responsibilities: "Wrote and reviewed core code, guarded quality on the main branch, and guided community contributions toward the project's goals."
+    deliveries: "Made the engine faster and more reliable and folded in community-built features and fixes — hands-on, low-level software engineering."
 
   - start: 2014
     end: 2015
     description: "Research Assistant — a global telecom networks company. Researched traffic shaping to improve Quality of Service and Experience in LTE networks."
-    responsibilities: "Analyzed traffic with scheduling algorithms and heuristics, deep in TCP/IP and the Linux kernel."
-    deliveries: "Built a solution aimed at optimizing network traffic and QoS/QoE, deepening low-level networking expertise."
+    responsibilities: "Analyzed traffic with scheduling algorithms and heuristics, working deep in TCP/IP and the Linux kernel — engineering as applied science."
+    deliveries: "Built a solution aimed at optimizing network traffic and QoS/QoE, and came away with deep low-level systems expertise."
 
   - start: 2013
     end: 2014
-    description: "R&D Assistant — a technical university's IT research centre. Built an open-source, OpenStack-based cloud for academic use."
-    responsibilities: "Designed on-demand cloud instances pre-configured for coursework and research."
-    deliveries: "Delivered a self-service cloud framework giving educators and students instant, ready-to-use environments."
+    description: "R&D Assistant — a technical university's IT research centre. Helped build a private, on-prem cloud on OpenStack for academic use."
+    responsibilities: "Designed on-demand, pre-configured cloud instances for coursework and research."
+    deliveries: "Delivered a self-service private-cloud framework giving educators and students instant, ready-to-use environments — an early lesson in automation-driven infrastructure."
