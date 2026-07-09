@@ -16,7 +16,7 @@ Side projects rarely stay small. `escpos-api` started as a few HTTP endpoints th
 
 Each addition made sense on its own. Together they make the project hard to explain in one breath. "It's a Flask app that prints things" is true but useless. A full file-by-file tour is accurate but exhausting. New readers — and the author six months later — need a way to see the whole system at a glance and then drill into just the part they care about.
 
-That is the problem this post solves: not a bug, but *comprehension*. The tool for the job is the **C4 model**.
+That is the problem this post solves: not a bug, but *comprehension*. The tool for the job is the **[C4 model](https://c4model.com)**.
 
 ## Solution
 
